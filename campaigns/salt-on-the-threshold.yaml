@@ -1,0 +1,459 @@
+# Авторская кампания Orbis для проверки петли «флаг живёт между вечерами».
+# Не пересказ чужой коробки: свои места, свои угрозы, свой текст.
+format: orbis/1
+
+campaign:
+  id: salt_threshold
+  title: Соль на пороге
+  pitch: >
+    Два вечера на сухой реке, у заброшенной таможни. В первую ночь стол
+    либо кладёт соль на порог, либо не кладёт. Один флаг, salt_on_the_threshold,
+    тетрадь переносит на вторую ночь — в комнату, где сушат сети. Оба финала
+    каждого вечера уже написаны. Это партия для проверки Orbis, не чужой сюжет.
+  flags:
+    - salt_on_the_threshold
+  scenarios:
+    - dry_pier
+    - net_loft
+  start: dry_pier
+
+scenarios:
+  - id: dry_pier
+    title: Ночь сухой пристани
+    investigators:
+      min: 1
+      max: 4
+    setup:
+      read_aloud: >
+        Река ушла от свай, и пристань стоит в сухой грязи. В сенях таможни
+        пахнет мокрой верёвкой. Колокол на стене ещё тёплый, будто его
+        трогали только что. Фонарь снаружи не горит.
+      host_note: >
+        На столе только сени, верёвка колокола и ларь соли. Пристань, фонарь
+        и соляную фигуру не кладите, пока шаг этого не скажет. За столом
+        {investigators}: {names}. Кубики и правила боя остаются у игроков.
+      present:
+        - customs_hall
+        - bell_rope
+        - salt_bin
+    clock:
+      name: Мокрый час
+      start: 0
+      limit: 4
+    components:
+      - id: customs_hall
+        kind: room
+        label: Сени таможни
+        host_note: Стартовая комната. Её рисуют листком.
+        at: null
+      - id: pier
+        kind: room
+        label: Сухая пристань
+        host_note: Соседствует с сенями. Класть, когда шаг откроет.
+        at: null
+      - id: lamp_niche
+        kind: room
+        label: Ниша фонаря
+        host_note: Угол пристани. Класть вместе с зажжённым фонарём.
+        at: null
+      - id: bell_rope
+        kind: marker
+        label: Верёвка колокола
+        host_note: Осмотреть. Один удар.
+        at: customs_hall
+      - id: salt_bin
+        kind: marker
+        label: Ларь с солью
+        host_note: Обыскать. Соли хватит на одну черту.
+        at: customs_hall
+      - id: pier_lamp
+        kind: marker
+        label: Тёмный фонарь
+        host_note: На пристани. Зажечь можно с солью или без.
+        at: pier
+      - id: brine_figure
+        kind: creature
+        label: Соляная фигура
+        host_note: >
+          Стоит и слушает. Бой здесь не считается: стол решает по своим
+          правилам, потом нажмите «существо снято» или дождитесь часов.
+        at: pier
+      - id: river_salt
+        kind: object
+        label: Речная соль
+        host_note: Горсть крупной соли из ларя.
+        at: null
+    events:
+      - id: opening_bell
+        when:
+          on: phase
+          phase: opening
+        read_aloud: >
+          Пока порог не тронут, с реки никто не входит. Если стол звонит
+          в колокол или лезет в ларь, отмечайте жетоны. Соль на порог —
+          отдельный такт, и только если её реально высыпали.
+        host_note: >
+          Открытие один раз. Дальше круг: сыщики закончили, давление, существа.
+        choices:
+          - label: Стол готов
+            effects: []
+      - id: rope_used
+        when:
+          on: marker_used
+          component: bell_rope
+        read_aloud: >
+          Колокол бьёт один раз. С сухой пристани отвечают шаги — мокрые,
+          хотя воды нет. В дверях стоит фигура из соли, без рта, и слушает.
+        host_note: Положите пристань, тёмный фонарь и соляную фигуру.
+        choices:
+          - label: Стол видит фигуру
+            effects:
+              - reveal: pier
+              - reveal: pier_lamp
+              - reveal: brine_figure
+      - id: salt_used
+        when:
+          on: marker_used
+          component: salt_bin
+        read_aloud: >
+          В ларе крупная речная соль, серая от ила. Её хватит на одну
+          черту поперёк порога.
+        host_note: Положите речную соль рядом с сенями.
+        choices:
+          - label: Стол берёт соль
+            effects:
+              - reveal: river_salt
+      - id: lay_salt
+        when:
+          on: host_calls
+          call: lay_salt
+          label: Соль на порог
+        read_aloud: >
+          Соль ложится поперёк порога кривой белой чертой. Фигура, если
+          она уже на пристани, доходит до черты и встаёт. Дальше хода у неё нет.
+        host_note: >
+          Ставится флаг salt_on_the_threshold. Если фигуры ещё нет, черта
+          всё равно лежит до второй ночи.
+        choices:
+          - label: Стол высыпал соль
+            effects:
+              - set_flag: salt_on_the_threshold
+      - id: lamp_used
+        when:
+          on: marker_used
+          component: pier_lamp
+        read_aloud: >
+          Фонарь пристани холоден. Стекло в корке соли. За ним темнота,
+          и ей не всё равно, зажгут ли фитиль голыми руками.
+        host_note: >
+          Два уже написанных выбора. Третий не предлагайте. Выбор с солью
+          ставит тот же флаг и закрывает сценарий успехом.
+        choices:
+          - label: Стол растирает стекло солью и зажигает фитиль
+            effects:
+              - reveal: lamp_niche
+              - set_flag: salt_on_the_threshold
+              - hide: brine_figure
+              - end: pier_held
+          - label: Стол зажигает фитиль без соли
+            effects:
+              - reveal: lamp_niche
+              - add_clock: 2
+      - id: tide_tick
+        when:
+          on: phase
+          phase: pressure
+        read_aloud: >
+          Под сваей хлюпает вода, которой нет. {clock_name} — {clock}.
+          {names} это слышат.
+        host_note: Часы уже сдвинуты на один этим нажатием фазы.
+        choices:
+          - label: Стол слышит воду
+            effects: []
+      - id: figure_steps
+        when:
+          on: phase
+          phase: creatures
+        read_aloud: >
+          Где-то между сваей и дверью стоит чужое внимание.
+        host_note: >
+          Нет фигуры на столе — «Шаг пустой». Фигура есть и соль уже в
+          тетради — «Соль держит». Фигура есть и соли нет — «Шаг к порогу»,
+          часы плюс один.
+        choices:
+          - label: Шаг пустой
+            effects: []
+          - label: Соль держит
+            effects: []
+          - label: Шаг к порогу
+            effects:
+              - add_clock: 1
+      - id: tide_full
+        when:
+          on: clock_at
+          value: 4
+        read_aloud: >
+          Мокрый час доходит до двери. Хор больше не ждёт снаружи.
+          Колокол звонит уже сам.
+        host_note: >
+          Провал по часам. Флаг соли, если он уже стоит, не снимайте:
+          тетрадь унесёт его на вторую ночь.
+        choices:
+          - label: Стол не удерживает пристань
+            effects:
+              - end: pier_lost
+      - id: figure_down
+        when:
+          on: creature_down
+          component: brine_figure
+        read_aloud: >
+          Фигура рассыпается в серую крошку. Порог на минуту свободен.
+          Это ещё не конец ночи: решает фонарь или мокрый час.
+        host_note: Снимите фигуру. Финал сам от этого не наступает.
+        choices:
+          - label: Стол сметает крошку
+            effects:
+              - hide: brine_figure
+      - id: leave_by_skiff
+        when:
+          on: host_calls
+          call: leave_by_skiff
+          label: Уйти на лодке
+        read_aloud: >
+          Стол спускает сухую лодку в грязь и отталкивается. Пристань
+          остаётся за спиной, колокол ещё раз бьёт впустую.
+        host_note: >
+          Уход. Не успех и не провал. Этот шаг сам флаг соли не ставит.
+          Вторая ночь всё равно наступает.
+        choices:
+          - label: Лодка ушла
+            effects:
+              - end: left_early
+    endings:
+      - id: pier_held
+        kind: success
+        when:
+          on: event
+          event: lamp_used
+        read_aloud: >
+          Фитиль берётся. Соль на стекле шипит и гаснет белым. Пристань
+          снова просто дерево и грязь. Черта на пороге остаётся.
+        host_note: >
+          Успех. В тетрадь пишется salt_on_the_threshold. Другим вечером
+          откройте уже лежащий сценарий «Комната, где сушат сети».
+        set_flags:
+          - salt_on_the_threshold
+        next: net_loft
+      - id: pier_lost
+        kind: failure
+        when:
+          on: event
+          event: tide_full
+        read_aloud: >
+          Сени перестают быть сенями. Соль и ил входят вместе, и дверь
+          больше не решает, кого пускать.
+        host_note: >
+          Провал. Если флаг соли уже стоит, он остаётся. Если нет — вторая
+          ночь начнётся без него. Дальше всё равно комната сетей, тем же пакетом.
+        set_flags: []
+        next: net_loft
+      - id: left_early
+        kind: other
+        when:
+          on: event
+          event: leave_by_skiff
+        read_aloud: >
+          Грязь принимает лодку. На пристани никто не провожает.
+        host_note: Уход. Флаг не добавляется этим финалом. Дальше комната сетей.
+        set_flags: []
+        next: net_loft
+
+  - id: net_loft
+    title: Комната, где сушат сети
+    investigators:
+      min: 1
+      max: 4
+    setup:
+      read_aloud: >
+        Над таможней комнату держат балки. Сети висят до пола, жёсткие,
+        как будто их сушили не от воды, а от пения. Лестница вниз уходит
+        в темноту.
+      host_note: >
+        Стартом положите комнату, лестницу, фигуру на лестнице и жетон сетей.
+        Если с первой ночи пришёл флаг salt_on_the_threshold, само откроется
+        событие и снимет фигуру. Имя флага вслух не читайте. За столом
+        по-прежнему {names}.
+      present:
+        - net_loft_room
+        - stair
+        - stair_figure
+        - nets
+    clock:
+      name: Сухой час
+      start: 0
+      limit: 3
+    components:
+      - id: net_loft_room
+        kind: room
+        label: Комната сетей
+        host_note: Верх таможни. Стартовая комната второй ночи.
+        at: null
+      - id: stair
+        kind: room
+        label: Лестница
+        host_note: Ход вниз, к порогу первой ночи.
+        at: null
+      - id: nets
+        kind: marker
+        label: Сети
+        host_note: Обыскать. Внутри зашит напев.
+        at: net_loft_room
+      - id: stair_figure
+        kind: creature
+        label: Фигура на лестнице
+        host_note: >
+          Стоит на старте. Если порог был посолен, событие флага велит её убрать.
+        at: stair
+      - id: dry_hymn
+        kind: object
+        label: Сухой напев
+        host_note: Шнурок с узлами. Не класть, пока сети не обысканы.
+        at: null
+    events:
+      - id: salt_holds_stair
+        when:
+          on: flag_is
+          flag: salt_on_the_threshold
+        read_aloud: >
+          На нижней ступени всё ещё лежит вчерашняя соль. Лестница пустая.
+          Фигуру, если положили её по старту, уберите.
+        host_note: >
+          Флаг пришёл из прошлого сценария. Текст пакета из-за этого не
+          переписан: событие было написано заранее.
+        choices:
+          - label: Стол видит пустую лестницу
+            effects:
+              - hide: stair_figure
+      - id: opening_loft
+        when:
+          on: phase
+          phase: opening
+        read_aloud: >
+          Здесь прятали то, что нельзя петь внизу. В сетях что-то зашито — не рыба.
+        host_note: Открытие один раз. Жетон сетей уже на столе.
+        choices:
+          - label: Стол остаётся среди сетей
+            effects: []
+      - id: dry_tick
+        when:
+          on: phase
+          phase: pressure
+        read_aloud: >
+          Воздух становится суше. Узлы на сетях подтягиваются сами.
+          {clock_name}: {clock}.
+        host_note: Часы уже плюс один от фазы.
+        choices:
+          - label: Стол замечает узлы
+            effects: []
+      - id: stair_climbs
+        when:
+          on: phase
+          phase: creatures
+        read_aloud: >
+          Лестница скрипит так, будто на неё ставят ногу.
+        host_note: >
+          Нет фигуры — «Лестница пуста». Есть — «Фигура поднимается», часы плюс один.
+        choices:
+          - label: Лестница пуста
+            effects: []
+          - label: Фигура поднимается
+            effects:
+              - add_clock: 1
+      - id: nets_used
+        when:
+          on: marker_used
+          component: nets
+        read_aloud: >
+          В толще сети зашит шнурок с узлами. Узлы не буквы. Это напев,
+          и его произносят сухим ртом.
+        host_note: >
+          Положите сухой напев. Такт «Произнести напев» — только после этого,
+          когда стол реально говорит слова.
+        choices:
+          - label: Стол распутывает шнурок
+            effects:
+              - reveal: dry_hymn
+      - id: speak_hymn
+        when:
+          on: host_calls
+          call: speak_hymn
+          label: Произнести напев
+        read_aloud: >
+          Слова короткие и сухие. Сети перестают качаться. Тот, кто стоял
+          на лестнице, рассыпается в пыль, если ему ещё было где стоять.
+        host_note: Успех сценария. Фигура снимается, если ещё на столе.
+        choices:
+          - label: Напев произнесён
+            effects:
+              - hide: stair_figure
+              - end: loft_quiet
+      - id: loft_dry_end
+        when:
+          on: clock_at
+          value: 3
+        read_aloud: >
+          Сухой час кончается. Сети поют сами, низко, без людей.
+          Комната больше не укрытие.
+        host_note: Провал по часам.
+        choices:
+          - label: Стол не успевает
+            effects:
+              - end: loft_sung
+      - id: cut_nets
+        when:
+          on: host_calls
+          call: cut_nets
+          label: Срезать сети и уйти
+        read_aloud: >
+          Стол режет сети ножом. Шнурок падает в пыль и молчит.
+          Комнату оставляют за спиной.
+        host_note: >
+          Уход. Кампания на этом закрывается. Флаг в тетради остаётся как был.
+        choices:
+          - label: Сети срезаны
+            effects:
+              - end: loft_fled
+    endings:
+      - id: loft_quiet
+        kind: success
+        when:
+          on: event
+          event: speak_hymn
+        read_aloud: >
+          Напев высыхает в балках. Сети молчат. Лестница больше никого не держит.
+        host_note: >
+          Успех. Кампания закрыта. Флаг соли остаётся в тетради, если был.
+          Нового сценария в пакете нет.
+        set_flags: []
+        next: stop
+      - id: loft_sung
+        kind: failure
+        when:
+          on: event
+          event: loft_dry_end
+        read_aloud: >
+          Сети допевают без вас. Сухой час закрывает балки, как крышку.
+        host_note: Провал. Кампания закрыта. Тетрадь больше никуда не ведёт.
+        set_flags: []
+        next: stop
+      - id: loft_fled
+        kind: other
+        when:
+          on: event
+          event: cut_nets
+        read_aloud: >
+          Пыль оседает на разрезанных сетях. Напев не прозвучал.
+          Река где-то внизу так и не вернулась.
+        host_note: Иначе. Кампания закрыта без победы и без часового провала.
+        set_flags: []
+        next: stop
